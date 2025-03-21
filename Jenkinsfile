@@ -11,9 +11,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', 
-                    credentialsId: 'your-jenkins-credentials-id', 
-                    url: 'https://github.com/Pavigiri1601/fastapi-app.git'
+                git branch: 'master, url: 'https://github.com/Pavigiri1601/fastapi-app.git'
             }
 
         }
