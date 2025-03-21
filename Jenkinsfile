@@ -4,14 +4,14 @@ pipeline {
     environment {
         IMAGE_NAME = "my-fastapi-app"
         CONTAINER_NAME = "fastapi-container"
-        AWS_EC2_IP = "YOUR_EC2_PUBLIC_IP"
-        DOCKER_HUB_USER = "YOUR_DOCKERHUB_USERNAME"
+        AWS_EC2_IP = "172.31.19.117"
+        DOCKER_HUB_USER = "pavi1601"
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/YOUR_USERNAME/fastapi-app.git'
+                git branch: 'master', url: 'https://github.com/Pavigiri1601/fastapi-app.git'
             }
         }
 
