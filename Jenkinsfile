@@ -2,58 +2,34 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "my-fastapi-app"
-        CONTAINER_NAME = "fastapi-container"
-        AWS_EC2_IP = "172.31.19.117"
-        DOCKER_HUB_USER = "pavi1601"
+        DOCKER_IMAGE = "Pavi1601/fastapi-app:latest"
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'master', url: 'https://github.com/Pavigiri1601/fastapi-app.git'
+                git credentialsId: 'github-ssh-key', url: 'git@github.com:Pavigiri1601/fastapi-app.git', branch: 'master'
             }
-
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
-        stage('Push Docker Image to Docker Hub') {
+        stage('Login to Docker Hub') {
             steps {
-                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-                    sh 'docker tag $IMAGE_NAME $DOCKER_HUB_USER/$IMAGE_NAME:latest'
-                    sh 'docker push $DOCKER_HUB_USER/$IMAGE_NAME:latest'
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
         }
 
-        stage('Deploy to AWS EC2') {
+        stage('Push Docker Image') {
             steps {
-                sshagent(['ec2-ssh']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@$AWS_EC2_IP << EOF
-                    docker stop $CONTAINER_NAME || true
-                    docker rm $CONTAINER_NAME || true
-                    docker pull $DOCKER_HUB_USER/$IMAGE_NAME:latest
-                    docker run -d -p 8000:8000 --name $CONTAINER_NAME $DOCKER_HUB_USER/$IMAGE_NAME:latest
-                    EOF
-                    '''
-                }
+                sh 'docker push $DOCKER_IMAGE'
             }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Deployment Successful!'
-        }
-        failure {
-            echo '❌ Deployment Failed!'
         }
     }
 }
-
